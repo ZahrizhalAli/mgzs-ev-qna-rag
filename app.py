@@ -9,8 +9,7 @@ from astream_events_handler import invoke_our_graph   # Utility function to hand
 
 load_dotenv()
 
-st.title("StreamLit 🤝 LangGraph")
-st.markdown("#### Chat Streaming and Tool Calling using Astream Events")
+st.title("EV Assistant 🤝")
 
 # Initialize the expander state
 if "expander_open" not in st.session_state:
@@ -35,18 +34,16 @@ if prompt is not None:
     st.session_state.expander_open = False  # Close the expander when the user starts typing
 
 # st write magic
-with st.expander(label="Simple Chat Streaming and Tool Calling using LangGraph's Astream Events", expanded=st.session_state.expander_open):
+with st.expander(label="MG ZS Assistant Bot", expanded=st.session_state.expander_open):
     """
-    In this example, we're going to be creating our own events handler to stream our [_LangGraph_](https://langchain-ai.github.io/langgraph/)
-    invocations with via [`astream_events (v2)`](https://langchain-ai.github.io/langgraph/how-tos/streaming-from-final-node/).
-    This one is does not use any callbacks or external streamlit libraries and is asynchronous.
-    we've implemented `on_llm_new_token`, a method that run on every new generation of a token from the ChatLLM model, and
-    `on_tool_start` a method that runs on every tool call invocation even multiple tool calls, and `on_tool_end` giving final result of tool call.
+    Hello! I’m your MG ZS Smart Assistant — here to help you make sense of your car’s warning messages, 
+    answer any questions about your vehicle, and guide you safely on your journey. 
+    Whether you're curious about a dashboard light or need quick advice while on the road, just ask — I’ve got your back! 🚗💬
     """
 
 # Initialize chat messages in session state
 if "messages" not in st.session_state:
-    st.session_state["messages"] = [AIMessage(content="How can I help you?")]
+    st.session_state["messages"] = [AIMessage(content="Hi There. How can I help you?")]
 
 # Loop through all messages in the session state and render them as a chat on every st.refresh mech
 for msg in st.session_state.messages:
