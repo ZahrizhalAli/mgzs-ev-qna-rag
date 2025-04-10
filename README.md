@@ -1,4 +1,4 @@
-![MG ZS Warning Assistant](images/dashboard.jpg)
+![MG ZS Warning Assistant](images/dashboard.png)
 
 # 🚗 MG ZS Smart Warning Assistant — RAG-Powered Car Manual Chatbot
 
