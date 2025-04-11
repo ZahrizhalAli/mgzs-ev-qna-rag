@@ -5,26 +5,71 @@ from langchain_core.tools import tool, StructuredTool
 from langgraph.graph import START, StateGraph
 from langgraph.graph.message import AnyMessage, add_messages
 from langchain_openai import ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_openai import ChatOpenAI
+from langchain_community.document_loaders import UnstructuredHTMLLoader
+from langchain_openai import OpenAIEmbeddings
+from langchain_core.runnables import RunnablePassthrough
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_chroma import Chroma
+from dotenv import load_dotenv
 
-# Define a search tool using DuckDuckGo API wrapper
+load_dotenv()
+
+# Load the HTML as a LangChain document loader
+loader = UnstructuredHTMLLoader(file_path="data/mg-zs-warning-messages.html")
+car_docs = loader.load()
+
+# Text Splitter
+text_splitter = RecursiveCharacterTextSplitter(chunk_size=150, chunk_overlap=20)
+
+documents = text_splitter.split_documents(car_docs)
+
+# Store documents in a vector store
+embeddings_model = OpenAIEmbeddings(model="text-embedding-3-large")
+
+db = Chroma.from_documents(documents, embeddings_model)
+
+class State(TypedDict):
+    messages : str
+
+@tool
+def get_car_information(query: State):
+    """Call to answer questions related to Car."""
+    # Chroma Retriever
+    retriever = db.as_retriever()
+    # Define RAG Prompt
+    prompt = ChatPromptTemplate.from_template(
+        """You are an assistant for question-answering tasks. Use the following pieces of retrieved 
+        context to answer the question. If you don't know the answer, 
+        just say that you don't know. 
+        Use three sentences maximum and keep the answer concise.
+        \nQuestion: {question} \nContext: {context} \nAnswer:
+        """
+    )
+
+    # Setup Chain and model
+
+    llm = ChatOpenAI()
+
+    rag_chain = ({"context": retriever, "question": RunnablePassthrough()}
+                 | prompt | llm)
+
+    answer = rag_chain.invoke(query["messages"]).content
+    return {"messages": answer}
 
 @tool
 def get_weather(location: str):
-    """Call to get the current weather."""
+    """Call to get the current weather. Add advice of driving safety based on condition"""
     # A simplified weather response based on location
     if location.lower() in ["sf", "san francisco"]:
         return "It's 60 degrees and foggy."
     else:
         return "It's 90 degrees and sunny."
 
-@tool
-def get_coolest_cities():
-    """Get a list of coolest cities."""
-    # Hardcoded response with a list of cool cities
-    return "nyc, sf"
 
 # List of tools that will be accessible to the graph via the ToolNode
-tools = [get_weather, get_coolest_cities]
+tools = [get_weather, get_car_information]
 tool_node = ToolNode(tools)
 
 # This is the default state same as "MessageState" TypedDict but allows us accessibility to custom keys
