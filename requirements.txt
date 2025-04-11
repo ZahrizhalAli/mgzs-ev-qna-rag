@@ -3,3 +3,5 @@ streamlit
 langchain-openai
 langchain-community
 python-dotenv
+langchain-chroma
+unstructured
